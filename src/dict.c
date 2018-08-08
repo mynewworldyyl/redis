@@ -255,6 +255,7 @@ int dictRehash(dict *d, int n) {
          * elements because ht[0].used != 0 */
         //确保rehashidx没有越界，因为rehashidx是从-1开始，0表示已经移动1个节点，它总是小于hash表的size的
         assert(d->ht[0].size > (unsigned long)d->rehashidx);
+        //对关结点做遍历，直到找到一个不为空的结点，头结点数组存放指向dictEntry的指针
         while(d->ht[0].table[d->rehashidx] == NULL) {
             //查找一个非空的dictEntry数组
             d->rehashidx++;
@@ -270,6 +271,7 @@ int dictRehash(dict *d, int n) {
             nextde = de->next;
             /* Get the index in the new hash table */
             h = dictHashKey(d, de->key) & d->ht[1].sizemask;
+            //新结点插入到hash链的前面
             de->next = d->ht[1].table[h];
             d->ht[1].table[h] = de;
             d->ht[0].used--;
@@ -507,10 +509,13 @@ dictEntry *dictFind(dict *d, const void *key)
         idx = h & d->ht[table].sizemask;
         he = d->ht[table].table[idx];
         while(he) {
+            //key==he->key 内存地址相同，并没有对值进行比较
+            //dictCompareKeys交由distType的对应函数进行比较
             if (key==he->key || dictCompareKeys(d, key, he->key))
                 return he;
             he = he->next;
         }
+        //第一遍遍历完成，看是否在rehash状态，如果不是，直接返回空，否则继续遍历hashtable【1】
         if (!dictIsRehashing(d)) return NULL;
     }
     return NULL;

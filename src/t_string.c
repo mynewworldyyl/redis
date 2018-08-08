@@ -74,16 +74,19 @@ void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire,
             addReplyErrorFormat(c,"invalid expire time in %s",c->cmd->name);
             return;
         }
+        //单位是秒，转为毫秒
         if (unit == UNIT_SECONDS) milliseconds *= 1000;
     }
 
     if ((flags & OBJ_SET_NX && lookupKeyWrite(c->db,key) != NULL) ||
         (flags & OBJ_SET_XX && lookupKeyWrite(c->db,key) == NULL))
     {
+        //不存在或存在检测失败
         addReply(c, abort_reply ? abort_reply : shared.nullbulk);
         return;
     }
     setKey(c->db,key,val);
+    //server在server.h中声明
     server.dirty++;
     if (expire) setExpire(c->db,key,mstime()+milliseconds);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",key,c->db->id);

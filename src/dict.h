@@ -131,6 +131,7 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
         entry->key = (_key_); \
 } while(0)
 
+    //比较两个KEY是否相等，如果hashtable设置了keyCompare函数，则使用keyCompare函数做比较，否则直接用==做比较
 #define dictCompareKeys(d, key1, key2) \
     (((d)->type->keyCompare) ? \
         (d)->type->keyCompare((d)->privdata, key1, key2) : \
